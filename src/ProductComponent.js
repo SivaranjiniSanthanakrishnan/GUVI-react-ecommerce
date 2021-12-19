@@ -15,7 +15,7 @@ function ProductComponent(props){
         if(decodedToken.exp*1000 <= Date.now()){
             props.history.push('/')
         } else {
-            var response = await axios.get('http://localhost:3001/product/getproduct', 
+            var response = await axios.get('https://guvi-node-ecommerce.herokuapp.com/product/getproduct', 
             {
                 headers: {
                     token: localToken
@@ -31,7 +31,7 @@ function ProductComponent(props){
         if(decodedToken.exp*1000 <= Date.now()){
             props.history.push('/')
         } else {
-            var response = await axios.patch(`http://localhost:3001/product/updateProduct/${id}`, 
+            var response = await axios.patch(`https://guvi-node-ecommerce.herokuapp.com/product/updateProduct/${id}`, 
             {
                 userQuantity: userQuantity
             },

@@ -14,7 +14,7 @@ class LoginComponent extends React.Component{
             e.preventDefault();
             try{
                 var response = await axios.post(
-                'http://localhost:3001/register/login', {
+                'https://guvi-node-ecommerce.herokuapp.com/register/login', {
                     password: this.state.password,
                     email: this.state.email
                 })
