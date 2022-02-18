@@ -1,52 +1,46 @@
 import React from 'react';
 import axios from 'axios';
+import {useNavigate} from 'react-router-dom';
+import {Typography, TextField, Button} from '@mui/material';
 
-class LoginComponent extends React.Component{
-    constructor(props){
-        super();
-        this.state = {
-            email: '',
-            password: ''
-        }
-    }
-    render(){
-        const handleSubmit = async (e) => {
-            e.preventDefault();
-            try{
-                var response = await axios.post(
-                'https://guvi-node-ecommerce.herokuapp.com/register/login', {
-                    password: this.state.password,
-                    email: this.state.email
-                })
-                if(response.data) {
-                    await localStorage.setItem('token', response.data);
-                    this.props.history.push('/products');
-                }
-            } catch (err) {
-                console.warn(err)
+function LoginComponent () {
+
+    const[email, setEmail] =React.useState('')
+    const[password, setPassword] =React.useState('')
+    const navigate = useNavigate();
+    
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        try{
+            var response = await axios.post('http://localhost:3002/register/signin', {
+                email: email,
+                password: password
+            })
+            if(response.data) {
+                await localStorage.setItem("token", response.data)
+                navigate('/product');
             }
+        }catch(err) {
+            console.log(err)
         }
-        return(
-            <>
-                <div style={{padding:'20px'}}>
-                    <h3>Login Component</h3>
-                    <form onSubmit={(e)=>handleSubmit(e)}>
-                        <div>
-                            <label>Email</label> &nbsp;
-                            <input type="email" name="email" value={this.state.email} 
-                            onChange={(e)=> this.setState({email: e.target.value})}></input>
-                        </div> <br/>
-                        <div>
-                            <label>Password</label>  &nbsp;
-                            <input type="password" name="password" value={this.state.password} 
-                            onChange={(e)=> this.setState({password: e.target.value})}></input>
-                        </div> <br/>
-                        <button type="submit">Submit</button> <br/>
-                    </form>
-                </div>
-            </>
-        )
     }
+    return(
+        <div style={{margin:'5%'}}>
+            <Typography variant="h4" component="div"> Login Component </Typography> <br/> <br/>
+            <form onSubmit={handleSubmit}>
+                <div>
+                    < TextField type="text" name="email" label="Email"
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value)}/>
+                </div> <br/>
+                <div>
+                    <TextField label="Password" type="password" name="password" value={password} 
+                    onChange={(e) => setPassword(e.target.value)} />
+                </div> <br/>
+                <Button variant="contained" type="submit" > Submit </Button>
+            </form>
+        </div>
+    )
 }
 
 export default LoginComponent;

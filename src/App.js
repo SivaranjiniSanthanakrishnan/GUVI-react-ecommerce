@@ -1,10 +1,11 @@
 import logo from './logo.svg';
 import './App.css';
-import HomeComponent from './HomeComponent';
+import RouterComponent from './RouterComponent';
+
 function App() {
   return (
     <div className="App">
-      <HomeComponent a="1"/>
+      <RouterComponent/>
     </div>
   );
 }

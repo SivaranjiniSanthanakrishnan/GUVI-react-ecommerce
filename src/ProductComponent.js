@@ -1,115 +1,111 @@
-import React, {useEffect, useState} from 'react';
-import {AppBar, Box, Toolbar, Button, IconButton, Typography, Grid, Card, CardContent, CardActions } from '@mui/material';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import MenuIcon from '@mui/icons-material/Menu';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import {useNavigate} from 'react-router-dom';
+import { AppBar, Box, Toolbar, Typography, Button, IconButton, Grid, Card, CardContent, CardActions } from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
 import jwt from 'jsonwebtoken';
-import { getThemeProps } from '@mui/system';
 
-function ProductComponent(props){
+function ProductComponent() {
+
     const [productList, setProductList] = useState([]);
-    const [cart, setCart] = useState(0);
+    const navigate = useNavigate();
+    const token = localStorage.getItem("token")
+
     useEffect(async () => {
-        const localToken = localStorage.getItem('token');
-        var decodedToken = jwt.decode(localToken);
-        if(decodedToken.exp*1000 <= Date.now()){
-            props.history.push('/')
+        var decodedToken = jwt.decode(token);
+        if(decodedToken.exp * 1000 < Date.now() ){
+            navigate('/');
         } else {
-            var response = await axios.get('https://guvi-node-ecommerce.herokuapp.com/product/getproduct', 
-            {
+            var response = await axios.get('http://localhost:3002/product/get', {
                 headers: {
-                    token: localToken
+                    "access-token": token
                 }
-            })
+            });
             setProductList(response.data);
-            updateCart(response.data)
         }
+        
     }, [])
-    const updateProduct = async (id, userQuantity) => {
-        const localToken = localStorage.getItem('token');
-        var decodedToken = jwt.decode(localToken);
-        if(decodedToken.exp*1000 <= Date.now()){
-            props.history.push('/')
+
+    const updateProduct = async (id, userQuantity) =>{
+        var decodedToken = jwt.decode(token);
+        if(decodedToken.exp * 1000 < Date.now() ){
+            navigate('/');
         } else {
-            var response = await axios.patch(`https://guvi-node-ecommerce.herokuapp.com/product/updateProduct/${id}`, 
-            {
+            var response = await axios.put(`http://localhost:3002/product/update/${id}`, {
                 userQuantity: userQuantity
-            },
-            {
+            }, {
                 headers: {
-                    token: localToken
+                    "access-token": token
                 }
             })
+        
+            var index = productList.findIndex(row => row.id === id);
             var productListCopy = [...productList];
-            var index = productListCopy.findIndex(row => row._id === response.data._id);
-            productListCopy[index] = response.data;
+            productListCopy[index] = response.data.value;
             setProductList(productListCopy);
-            updateCart(productList)
         }
     }
-    const updateCart = (products) => {
-        var cart = products.reduce((accumulator, currentValue) => {
-            return (currentValue.userQuantity) ? accumulator +1 : accumulator
-        }, 0)
-        setCart(cart);
+    const logout = async () => {
+        await localStorage.removeItem("token");
+        navigate('/')
     }
-    const logout = () => {
-        localStorage.removeItem('token');
-        props.history.push('/')
-    }
-    return(
-        <Box sx={{ flexGrow: 1 }}>
-        <AppBar position="static">
-            <Toolbar>
-            <IconButton
-                size="large"
-                edge="start"
-                color="inherit"
-                aria-label="menu"
-                sx={{ mr: 2 }}
-            >
-                <MenuIcon />
-            </IconButton>
-            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                Guvi - Products
-            </Typography>
-            
-            <ShoppingCartIcon />
-            <h3>{cart} </h3>
-            <Button color="inherit" onClick={logout}>Logout</Button>
-            </Toolbar>
-        </AppBar>
-            <div style={{padding: '25px'}}>
-            <Grid container spacing={2}>
-                {productList.map(row=> (
+    return (
+        <Grid>
+            <Box sx={{ flexGrow: 1 }}>
+                <AppBar position="static">
+                    <Toolbar>
+                        <IconButton
+                            size="large"
+                            edge="start"
+                            color="inherit"
+                            aria-label="menu"
+                            sx={{ mr: 2 }}
+                        >
+                            <MenuIcon />
+                        </IconButton>
+                        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                            Guvi - Products
+                        </Typography>
+                        <Button color="inherit" onClick={logout}>Logout</Button>
+                    </Toolbar>
+                </AppBar>
+            </Box>
+            <br />
+            <Grid container spacing={2} style={{ margin: '2%' }}>
+                {productList.map(row => (
                     <Grid item key={row._id}>
-                        <Card sx={{ width: 200 }}>
+                        <Card sx={{ width: 275 }}>
                             <CardContent>
-                                <Typography gutterBottom>
-                                {row.productName}
+                                <Typography variant="h5" component="div">
+                                    {row.productName}
+                                </Typography>
+                                <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+                                    {row.description}
                                 </Typography>
                                 <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                                Rs.{row.price}.00
-                                </Typography>
-                                <Typography >
-                                Available Quantity: {row.quantity}
+                                    Price: {row.price}
                                 </Typography>
                                 <Typography variant="body2">
-                                {row.description}
+                                    Quantity: {row.quantity}
                                 </Typography>
                             </CardContent>
                             <CardActions>
-                                <Button onClick={() => updateProduct(row._id, ++row.userQuantity)} disabled={row.userQuantity >= row.quantity}> + </Button> 
-                                {row.userQuantity} 
-                                <Button onClick={() => updateProduct(row._id, --row.userQuantity)} disabled={row.userQuantity<=0}>-</Button>
+                                <Button onClick={e => updateProduct(row._id, ++row.userQuantity)} disabled={row.userQuantity >= row.quantity}>+</Button>  
+                                    {row.userQuantity}
+                                <Button onClick={e => updateProduct(row._id, --row.userQuantity)} disabled={row.userQuantity <= 0}>-</Button> 
                             </CardActions>
                         </Card>
                     </Grid>
                 ))}
+
             </Grid>
-            </div>
-        </Box>
+        </Grid>
     )
 }
 
 export default ProductComponent;
+
+// axios.get: 1st param: URL, 2nd param: headers
+// axios.post: 1st param: URL, 2nd param: req.body, 3rd: headers
+// axios.put: 1st param: URL, 2nd param: req.body, 3rd: headers
+// axios.delete: 1st param: URL, 2nd param: headers
